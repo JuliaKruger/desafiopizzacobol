@@ -28,26 +28,57 @@
 
       * declaração das variáveis
        01 relatorio occurs 50.
+           05 nome                                 pic x(15).
+           05 filler                               value space.
            05 diametro                             pic 9(03)V99
                                                    value 0.
+           05 filler                               value space.
+           05 filler                               value space.
+           05 filler                               value space.
            05 preco                                pic 9(03)V99
                                                    value 0.
+           05 filler                               value space.
+           05 filler                               value space.
            05 preco_cm2                            pic 9(03)V99
                                                    value 0.
-           05 nome                                 pic x(15).
+           05 filler                               value space.
+           05 filler                               value space.
+           05 filler                               value space.
+           05 filler                               value space.
+           05 filler                               value space.
+
+           05 porcent                              pic S9(03)V99
+                                                   value 0.
+
+       01 relatorio_tab occurs 50.
+           05 nome_tab                             pic x(15)
+                                                   value "Nome".
+           05 filler                               value space.
+           05 diametro_tab                         pic x(08)
+                                                   value "Tamanho".
+           05 preco_tab                            pic x(06)
+                                                   value "Preco".
+           05 filler                               value space.
+           05 precocm2_tab                         pic x(08)
+                                                   value "R$ p/cm2".
+           05 filler                               value space.
+           05 filler                               value space.
+           05 porcent_tab                          pic x(12)
+                                                   value "Diferenca %".
+
+
 
        77 ind                                      pic 9(2)
                                                    value 0.
-       77 auxpreco                                 pic 9(03)V99.
+       77 auxprecocm2                              pic 9(03)V99.
        77 auxnome                                  pic x(15).
        77 auxdiametro                              pic 9(03)V99.
+       77 auxpreco                                 pic 9(03)V99.
        77 aux                                      pic x(1).
        77 fimprograma                              pic x(03).
        77 controle                                 pic x(08).
        77 quantidade                               pic 9(3).
        01 varporcentagem occurs 50.
-           05 porcent                              pic S9(03)V99
-                                                   value 0.
            05 diferenca                            pic S9(03)V99
                                                    value 0.
 
@@ -86,9 +117,7 @@
                        display "Informe o preco da pizza: "
                        accept preco(ind)
 
-      *                cálculo do preço por centímetro quadrado
-                       compute preco_cm2(ind) = preco(ind) /
-                       (((diametro(ind) / 2)*(diametro(ind) / 2))* 3,14)
+                       perform calculo_cm2
 
                        display "Deseja cadastrar outra pizza? (Sim/Nao)"
                        accept fimprograma
@@ -114,9 +143,18 @@
                exit.
 
 
-      * perform para ordenar as informações (onde mais tive
-      * dificuldade de fazer funcionar, ainda não sei se está certa,
-      * mas pelo menos está fazendo alguma coisa)
+
+      *cálculo do preço por centímetro quadrado
+           calculo_cm2 section.
+               compute preco_cm2(ind) = preco(ind) /
+               (((diametro(ind) / 2)*(diametro(ind) / 2))* 3,14)
+               .
+           calculo_cm2-exit.
+               exit.
+
+
+
+      * perform para ordenar as informações
            ordenar section.
                move "trocou" to controle
                move 1 to ind
@@ -124,15 +162,18 @@
                    move "Ntrocou" to controle
                    perform until ind >= quantidade
                        if preco_cm2(ind) > preco_cm2(ind + 1) then
-                           move preco_cm2(ind + 1) to auxpreco
+                           move preco_cm2(ind + 1) to auxprecocm2
                            move nome(ind + 1) to auxnome
                            move diametro(ind + 1) to auxdiametro
+                           move preco(ind + 1) to auxpreco
                            move preco_cm2(ind) to preco_cm2(ind + 1)
                            move nome(ind) to nome(ind + 1)
                            move diametro(ind) to diametro(ind + 1)
-                           move auxpreco to preco_cm2(ind)
+                           move preco(ind) to preco(ind + 1)
+                           move auxprecocm2 to preco_cm2(ind)
                            move auxnome to nome(ind)
                            move auxdiametro to diametro(ind)
+                           move auxpreco to preco(ind)
                            move "trocou" to controle
                        end-if
                        add 1 to ind
@@ -142,11 +183,7 @@
                .
            ordenar-exit.
                exit.
-
-
-      * cálculo da diferença percentual, fiz como o prodessor, e
-      * coloquei quantidade - 1 para não gerar porcentagem no últmo,
-      * pois não tem como comparar com um próximo
+      * cálculo da diferença percentual
            porcentagem section.
                move 2 to ind
                perform until ind > quantidade
@@ -164,16 +201,8 @@
            imprimetab section.
                display "Ordem de melhor custo beneficio: "
                perform varying ind from 1 by 1 until ind > quantidade
-                   display "Pizza: " nome(ind)
-                   display "Tamanho: " diametro(ind) " cm"
-                   display "Preco por cm2: R$" preco_cm2(ind)
-
-      *            criei um if para não mostrar a porcentagem do
-      *            primeiro item
-                   if ind > 1 then
-                       display "Percentual de diferenca: "
-                       porcent(ind) "%"
-                   end-if
+                   display relatorio_tab(ind)
+                   display relatorio(ind)
                end-perform
                .
            imprimetab-exit.
